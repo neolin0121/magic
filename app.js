@@ -129,7 +129,114 @@ function renderDB(){
 function openDialog(id=null){editingInventoryId=id;const x=id?state.inventory.find(y=>y.id===id):null;$('#dialogTitle').textContent=x?'編輯魔石':'新增魔石';$('#invStoneType').innerHTML=stoneOptions(false);$('#invPotential').innerHTML=potentialOptions();$('#invStoneType').value=x?.stoneId||DB[0].id;$('#invPotential').value=x?.potential||'none';$('#invPotentialValue').value=x?.value||0;$('#invFavorite').checked=!!x?.favorite;$('#inventoryDialog').showModal()}
 function saveDialog(){const data={stoneId:$('#invStoneType').value,potential:$('#invPotential').value,value:Number($('#invPotentialValue').value||0),favorite:$('#invFavorite').checked};if(editingInventoryId)Object.assign(state.inventory.find(x=>x.id===editingInventoryId),data);else state.inventory.push({id:uuid(),...data});persist();renderInventory()}
 function combos(arr,k){const out=[];function rec(start,c){if(c.length===k){out.push(c.slice());return}for(let i=start;i<arr.length;i++){c.push(arr[i]);rec(i+1,c);c.pop()}}rec(0,[]);return out}
-function runOptimizer(){const metric=$('#optimizerMetric').value,base=Number($('#optimizerBase').value||0),inv=state.inventory;if(!inv.length){$('#optimizerEmpty').textContent='請先新增魔石。';return}let best=null;for(let k=1;k<=Math.min(5,inv.length);k++){for(const c of combos(inv,k)){const ids=c.map(x=>x.stoneId);if(new Set(ids).size!==ids.length)continue;const build=c.map(x=>({stoneId:x.stoneId,potential:x.potential,value:x.value})),r=calc(build,metric,base);if(!best||r.panelRaw>best.r.panelRaw)best={c,build,r,metric,base}}}if(!best){$('#optimizerEmpty').textContent='沒有合法組合。';return}optimizerSelection=best;$('#optimizerEmpty').classList.add('hidden');$('#optimizerResult').classList.remove('hidden');$('#optimizerBestValue').textContent=best.r.panel.toLocaleString('zh-TW');$('#optimizerStones').innerHTML=best.c.map(x=>`<div class="optimizer-card"><strong>${getStone(x.stoneId).name}</strong><div class="inv-meta">${POTENTIALS[x.potential].name} ${x.value}${POTENTIALS[x.potential].unit}</div></div>`).join('')}
+function optimizerStoneReason(item,combo,metric,base,fullResult){
+  const stone=getStone(item.stoneId);
+  const p=POTENTIALS[item.potential]||POTENTIALS.none;
+
+  const directFixed=stone.stats[metric]||0;
+  const directBonus=stone.bonuses[metric]||0;
+  const directPotential=(p.metric===metric && (p.kind==='mastery'||p.kind==='amplify'));
+
+  const reduced=combo
+    .filter(x=>x.id!==item.id)
+    .map(x=>({stoneId:x.stoneId,potential:x.potential,value:x.value}));
+  const reducedResult=calc(reduced,metric,base);
+  const marginal=fullResult.panelRaw-reducedResult.panelRaw;
+
+  let reason='';
+  if(directFixed||directBonus||directPotential){
+    const parts=[];
+    if(directFixed)parts.push(`${METRICS[metric].label}+${directFixed}`);
+    if(directBonus)parts.push(`${METRICS[metric].label}加成+${directBonus}%`);
+    if(directPotential)parts.push(`${p.name}`);
+    reason=`直接貢獻：${parts.join('、')}`;
+  }else if(marginal>0.0001){
+    reason=`連動支援：本身沒有直接${METRICS[metric].label}，但會透過紅色魔石數、形狀或其他潛能連動提高整套結果`;
+  }else{
+    reason=`補足第 5 顆／組合條件；本身對${METRICS[metric].label}直接影響很低`;
+  }
+
+  return {reason,marginal};
+}
+
+function runOptimizer(){
+  const metric=$('#optimizerMetric').value,
+        base=Number($('#optimizerBase').value||0),
+        inv=state.inventory;
+
+  if(!inv.length){
+    $('#optimizerEmpty').textContent='請先新增魔石。';
+    return;
+  }
+
+  let best=null;
+  const EPS=1e-9;
+
+  for(let k=1;k<=Math.min(5,inv.length);k++){
+    for(const c of combos(inv,k)){
+      const ids=c.map(x=>x.stoneId);
+      if(new Set(ids).size!==ids.length)continue;
+
+      const build=c.map(x=>({stoneId:x.stoneId,potential:x.potential,value:x.value}));
+      const r=calc(build,metric,base);
+
+      // 同分時優先選擇對目標屬性有直接基礎值/加成/精通/增幅的組合，僅作 tie-break，不改變真正最高面板判定。
+      const relevance=c.reduce((score,x)=>{
+        const s=getStone(x.stoneId),p=POTENTIALS[x.potential]||POTENTIALS.none;
+        return score+(s.stats[metric]||0)+(s.bonuses[metric]||0)+(p.metric===metric?Number(x.value||0):0);
+      },0);
+
+      if(!best || r.panelRaw>best.r.panelRaw+EPS ||
+         (Math.abs(r.panelRaw-best.r.panelRaw)<=EPS && relevance>best.relevance)){
+        best={c,build,r,metric,base,relevance};
+      }
+    }
+  }
+
+  if(!best){
+    $('#optimizerEmpty').textContent='沒有合法組合。';
+    return;
+  }
+
+  optimizerSelection=best;
+  $('#optimizerEmpty').classList.add('hidden');
+  $('#optimizerResult').classList.remove('hidden');
+  $('#optimizerBestValue').textContent=best.r.panel.toLocaleString('zh-TW');
+
+  const explained=best.c.map(x=>{
+    const info=optimizerStoneReason(x,best.c,metric,base,best.r);
+    return {...x,...info};
+  }).sort((a,b)=>b.marginal-a.marginal);
+
+  $('#optimizerStones').innerHTML=explained.map(x=>{
+    const stone=getStone(x.stoneId),p=POTENTIALS[x.potential];
+    const delta=Math.round(x.marginal*1000)/1000;
+    return `<div class="optimizer-card optimizer-explain-card">
+      <div class="optimizer-card-head">
+        <strong>${stone.name}</strong>
+        <span class="optimizer-marginal">整套貢獻 +${fmt(delta,1)}</span>
+      </div>
+      <div class="inv-meta">潛能：${p.name} ${x.value}${p.unit}</div>
+      <div class="optimizer-reason">${x.reason}</div>
+    </div>`;
+  }).join('');
+
+  const supportCount=explained.filter(x=>{
+    const s=getStone(x.stoneId),p=POTENTIALS[x.potential]||POTENTIALS.none;
+    return !(s.stats[metric]||0) && !(s.bonuses[metric]||0) && !(p.metric===metric&&(p.kind==='mastery'||p.kind==='amplify'));
+  }).length;
+
+  let note=document.querySelector('#optimizerExplainNote');
+  if(!note){
+    note=document.createElement('div');
+    note.id='optimizerExplainNote';
+    note.className='optimizer-explain-note';
+    $('#optimizerStones').before(note);
+  }
+  note.innerHTML=supportCount
+    ? `本次最佳組合包含 <b>${supportCount}</b> 顆「連動支援型」魔石。它們可能沒有直接${METRICS[metric].label}，但加入後會讓其他魔石的赤曜聚能、形狀條件或潛能連動變強，因此整套面板更高。`
+    : `本次最佳組合全部都有直接${METRICS[metric].label}貢獻。`;
+}
 function applyOptimizer(){if(!optimizerSelection)return;state.metric=optimizerSelection.metric;state.baseValues[state.metric]=optimizerSelection.base;state.equipped=optimizerSelection.build.slice();while(state.equipped.length<5)state.equipped.push({stoneId:'',potential:'none',value:0});persist();switchTab('build');renderBuild()}
 function switchTab(n){
   $$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===n));

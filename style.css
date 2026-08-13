@@ -161,3 +161,36 @@
 .potential-function-desc span{
   color:#d8f4df;
 }
+
+/* 最佳化：顯示每顆被選入的原因 */
+.optimizer-explain-note{
+  margin:10px 0;
+  padding:12px 14px;
+  border-left:4px solid var(--gold);
+  background:#07111c;
+  color:#dce5ef;
+  line-height:1.65;
+}
+.optimizer-explain-card{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.optimizer-card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.optimizer-marginal{
+  color:var(--green);
+  font-size:13px;
+  white-space:nowrap;
+}
+.optimizer-reason{
+  padding-top:6px;
+  border-top:1px solid rgba(255,255,255,.08);
+  color:#d9e8f6;
+  font-size:13px;
+  line-height:1.55;
+}
