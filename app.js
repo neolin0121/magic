@@ -1,4 +1,3 @@
-console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
 {id:'strongCircle',name:'強襲圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:0,damage:0,strong:100},bonuses:{quick:0,damage:0,strong:0}},
@@ -29,10 +28,6 @@ resonance:{name:'潛能共鳴',desc:'所有已裝備魔石的潛能效果提高 
 sameOrigin:{name:'同源潛能',desc:'已裝備的魔石中，每有 1 個其他相同潛能，該魔石的潛能效果提高 x%（潛能共鳴以及同源潛能除外）。',kind:'sameOrigin',unit:'%',fixed:[2,10],percent:[2,10]}
 };
 const METRICS={quick:{label:'迅擊'},damage:{label:'馭傷'},strong:{label:'強襲'}};
-const QUALITIES={
-mythic:{id:'mythic',name:'紅色神話',icon:'🔴',scale:1},
-legendary:{id:'legendary',name:'黃色傳說',icon:'🟡',scale:0.8}
-};
 const KEY='neo_gem_builder_v1';
 const clone=o=>JSON.parse(JSON.stringify(o));
 const uuid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random();
@@ -43,31 +38,18 @@ const defaults={metric:'quick',baseValues:{quick:324.7,damage:0,strong:0},quickD
 {stoneId:'bannerTower',potential:'shapeForm',value:4.6},
 {stoneId:'strategistTower',potential:'resonance',value:16}],inventory:[],compare:null};
 function seedInventory(){
- const items=defaults.equipped.map(x=>({id:uuid(),quality:x.quality||'mythic',...x,favorite:true}));
- items.push({id:uuid(),stoneId:'commanderTower',quality:'mythic',potential:'resonance',value:10.7,favorite:false});
+ const items=defaults.equipped.map(x=>({id:uuid(),...x,favorite:true}));
+ items.push({id:uuid(),stoneId:'commanderTower',potential:'resonance',value:10.7,favorite:false});
  return items;
 }
 function load(){try{const r=localStorage.getItem(KEY);if(!r){const s=clone(defaults);s.inventory=seedInventory();return s}return {...clone(defaults),...JSON.parse(r)}}catch{const s=clone(defaults);s.inventory=seedInventory();return s}}
 let state=load(),optimizerSelection=null,editingInventoryId=null;
-function migrateQualityData(){
- const fix=x=>{if(x&&x.stoneId&&!x.quality)x.quality='mythic';return x};
- (state.equipped||[]).forEach(fix);(state.inventory||[]).forEach(fix);persist();
-}
-migrateQualityData();
-
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const fmt=(n,d=3)=>Number(n||0).toLocaleString('zh-TW',{minimumFractionDigits:d,maximumFractionDigits:d});
-const getStone=(id,quality='mythic')=>{
- const base=DB.find(x=>x.id===id);if(!base)return null;
- const q=QUALITIES[quality]||QUALITIES.mythic,scale=q.scale;
- return {...base,quality:q.id,qualityName:q.name,color:q.name,
- stats:Object.fromEntries(Object.entries(base.stats||{}).map(([k,v])=>[k,Number((v*scale).toFixed(10))])),
- bonuses:Object.fromEntries(Object.entries(base.bonuses||{}).map(([k,v])=>[k,Number((v*scale).toFixed(10))]))};
-};
+const getStone=id=>DB.find(x=>x.id===id);
 const getRange=(s,k)=>(s.type==='fixed'?POTENTIALS[k].fixed:POTENTIALS[k].percent);
 const persist=()=>localStorage.setItem(KEY,JSON.stringify(state));
 const stoneOptions=(empty=true)=>(empty?'<option value="">未裝備</option>':'')+DB.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-function qualityOptions(selected='mythic'){return Object.values(QUALITIES).map(q=>`<option value="${q.id}" ${q.id===selected?'selected':''}>${q.icon} ${q.name}</option>`).join('')}
 function stoneOptionsForSlot(slotIndex){
   const currentId=state.equipped[slotIndex]?.stoneId||'';
   const used=new Set(state.equipped.map((x,i)=>i===slotIndex?'':x?.stoneId).filter(Boolean));
@@ -78,20 +60,20 @@ function stoneOptionsForSlot(slotIndex){
 }
 const potentialOptions=()=>Object.entries(POTENTIALS).map(([k,p])=>`<option value="${k}">${p.name}</option>`).join('');
 function calc(build,metric,base){
- const eq=build.filter(x=>x&&x.stoneId&&getStone(x.stoneId,x.quality||'mythic'));
- const redCount=eq.filter(x=>getStone(x.stoneId,x.quality||'mythic').quality==='mythic').length;
- const shapeCount=new Set(eq.map(x=>getStone(x.stoneId,x.quality||'mythic').shape)).size;
+ const eq=build.filter(x=>x&&x.stoneId&&getStone(x.stoneId));
+ const redCount=eq.filter(x=>getStone(x.stoneId).color==='紅色').length;
+ const shapeCount=new Set(eq.map(x=>getStone(x.stoneId).shape)).size;
  const resonance=eq.filter(x=>x.potential==='resonance').reduce((a,x)=>a+Number(x.value||0),0);
  const sameOrigin=eq.filter(x=>x.potential==='sameOrigin').reduce((a,x)=>a+Number(x.value||0),0);
  const counts={};eq.forEach(x=>counts[x.potential]=(counts[x.potential]||0)+1);
  let fixed=0,bonus=0,mastery=0,amplify=0;const details=[];
- for(const item of eq){const stone=getStone(item.stoneId,item.quality||'mythic'),p=POTENTIALS[item.potential]||POTENTIALS.none,raw=Number(item.value||0);let eff=raw;
+ for(const item of eq){const stone=getStone(item.stoneId),p=POTENTIALS[item.potential]||POTENTIALS.none,raw=Number(item.value||0);let eff=raw;
    if(!['none','resonance','sameOrigin'].includes(item.potential)){const others=Math.max(0,(counts[item.potential]||0)-1);eff=raw*(1+resonance/100)*(1+sameOrigin/100*others)}
    let boost=0;if(p.kind==='baseBoost')boost=eff;
 if(p.kind==='redEnergy')boost=eff*redCount;
 if(p.kind==='shapeForm')boost=eff*shapeCount;
 if(p.kind==='sameShape'){
-  const sameShapeCount=eq.filter(y=>getStone(y.stoneId,y.quality||'mythic').shape===stone.shape).length;
+  const sameShapeCount=eq.filter(y=>getStone(y.stoneId).shape===stone.shape).length;
   boost=eff*sameShapeCount;
 }
    const ef=(stone.stats[metric]||0)*(1+boost/100),eb=(stone.bonuses[metric]||0)*(1+boost/100);fixed+=ef;bonus+=eb;if(p.kind==='mastery'&&p.metric===metric)mastery+=eff;if(p.kind==='amplify'&&p.metric===metric)amplify+=eff;
@@ -102,7 +84,7 @@ if(p.kind==='sameShape'){
 }
 function renderBuild(){
  const metric=state.metric;$('#baseStatInput').value=state.baseValues[metric]||0;$('#baseStatHint').textContent='目前計算：'+METRICS[metric].label;$$('.seg').forEach(b=>b.classList.toggle('active',b.dataset.metric===metric));
- $('#equippedSlots').innerHTML=Array.from({length:5},(_,i)=>{const item=state.equipped[i]||{stoneId:'',quality:'mythic',potential:'none',value:0},stone=item.stoneId?getStone(item.stoneId,item.quality||'mythic'):null,p=POTENTIALS[item.potential]||POTENTIALS.none,r=stone?getRange(stone,item.potential):[0,0];return `<article class="slot-card ${stone?'active':''}"><div class="slot-index">${i+1}</div><div class="field"><label>魔石</label><select class="slot-stone" data-i="${i}">${stoneOptionsForSlot(i)}</select><div class="stone-desc">${stone?stone.name+'・'+stone.shape+'・'+stone.qualityName:'未裝備'}</div></div><div class="field"><label>品質</label><select class="slot-quality" data-i="${i}" ${stone?'':'disabled'}>${qualityOptions(item.quality||'mythic')}</select><div class="range">${stone?stone.qualityName:'—'}</div></div><div class="field"><label>潛能</label><select class="slot-pot" data-i="${i}" ${stone?'':'disabled'}>${potentialOptions()}</select><div class="range">${stone?`範圍 ${r[0]}${p.unit}～${r[1]}${p.unit}`:'—'}</div></div><div class="field slot-value-field"><label>數值</label><input class="slot-val" data-i="${i}" type="number" step="0.1" value="${item.value||0}" ${stone?'':'disabled'}><div class="range">輸入實際顯示數值</div></div><button class="btn slot-max" data-i="${i}" ${stone?'':'disabled'}>填最大</button><div class="slot-preview potential-desc" id="preview${i}">
+ $('#equippedSlots').innerHTML=Array.from({length:5},(_,i)=>{const item=state.equipped[i]||{stoneId:'',potential:'none',value:0},stone=item.stoneId?getStone(item.stoneId):null,p=POTENTIALS[item.potential]||POTENTIALS.none,r=stone?getRange(stone,item.potential):[0,0];return `<article class="slot-card ${stone?'active':''}"><div class="slot-index">${i+1}</div><div class="field"><label>魔石</label><select class="slot-stone" data-i="${i}">${stoneOptionsForSlot(i)}</select><div class="stone-desc">${stone?stone.name+'・'+stone.shape+'・紅色':'未裝備'}</div></div><div class="field"><label>潛能</label><select class="slot-pot" data-i="${i}" ${stone?'':'disabled'}>${potentialOptions()}</select><div class="range">${stone?`範圍 ${r[0]}${p.unit}～${r[1]}${p.unit}`:'—'}</div></div><div class="field slot-value-field"><label>數值</label><input class="slot-val" data-i="${i}" type="number" step="0.1" value="${item.value||0}" ${stone?'':'disabled'}><div class="range">輸入實際顯示數值</div></div><button class="btn slot-max" data-i="${i}" ${stone?'':'disabled'}>填最大</button><div class="slot-preview potential-desc" id="preview${i}">
   <div class="stone-base-desc">
     <b>基礎屬性：</b>
     <span>${stone ? [
@@ -112,7 +94,7 @@ function renderBuild(){
   </div>
   <div class="potential-function-desc"><b>${p.name}：</b><span>${p.desc||'尚未選擇潛能。'}</span></div>
 </div></article>`}).join('');
- state.equipped.forEach((x,i)=>{const a=$(`.slot-stone[data-i="${i}"]`),q=$(`.slot-quality[data-i="${i}"]`),b=$(`.slot-pot[data-i="${i}"]`);if(a)a.value=x.stoneId||'';if(q)q.value=x.quality||'mythic';if(b)b.value=x.potential||'none'});bindBuild();updateBuild();
+ state.equipped.forEach((x,i)=>{const a=$(`.slot-stone[data-i="${i}"]`),b=$(`.slot-pot[data-i="${i}"]`);if(a)a.value=x.stoneId||'';if(b)b.value=x.potential||'none'});bindBuild();updateBuild();
 }
 function bindBuild(){
  $$('.slot-stone').forEach(e=>e.onchange=ev=>{
@@ -122,13 +104,12 @@ function bindBuild(){
     renderBuild();
     return;
   }
-  state.equipped[i]=id?{stoneId:id,quality:'mythic',potential:'none',value:0}:{stoneId:'',quality:'mythic',potential:'none',value:0};
+  state.equipped[i]=id?{stoneId:id,potential:'none',value:0}:{stoneId:'',potential:'none',value:0};
   persist();renderBuild();
 });
- $$('.slot-quality').forEach(e=>e.onchange=ev=>{const i=+ev.target.dataset.i;if(state.equipped[i]){state.equipped[i].quality=ev.target.value;persist();renderBuild()}});
- $$('.slot-pot').forEach(e=>e.onchange=ev=>{const i=+ev.target.dataset.i,item=state.equipped[i],stone=getStone(item.stoneId,item.quality||'mythic');item.potential=ev.target.value;item.value=getRange(stone,item.potential)[0];persist();renderBuild()});
+ $$('.slot-pot').forEach(e=>e.onchange=ev=>{const i=+ev.target.dataset.i,item=state.equipped[i],stone=getStone(item.stoneId);item.potential=ev.target.value;item.value=getRange(stone,item.potential)[0];persist();renderBuild()});
  $$('.slot-val').forEach(e=>e.oninput=ev=>{state.equipped[+ev.target.dataset.i].value=Number(ev.target.value||0);persist();updateBuild()});
- $$('.slot-max').forEach(e=>e.onclick=ev=>{const i=+ev.target.dataset.i,item=state.equipped[i];item.value=getRange(getStone(item.stoneId,item.quality||'mythic'),item.potential)[1];persist();renderBuild()});
+ $$('.slot-max').forEach(e=>e.onclick=ev=>{const i=+ev.target.dataset.i,item=state.equipped[i];item.value=getRange(getStone(item.stoneId),item.potential)[1];persist();renderBuild()});
 }
 function updateBuild(){
  const m=state.metric,b=state.baseValues[m]||0,r=calc(state.equipped,m,b),label=METRICS[m].label;$('#panelStat').textContent=r.panel.toLocaleString('zh-TW');$('#panelExact').textContent=`精確值 ${fmt(r.panelRaw)}，面板四捨五入`;$('#stoneOnlyStat').textContent=fmt(r.stoneOnly,1);
@@ -140,7 +121,7 @@ function updateBuild(){
 }
 function renderInventory(){
  $('#inventoryList').innerHTML=state.inventory.length?state.inventory.map(x=>{
-   const s=getStone(x.stoneId,x.quality||'mythic'),p=POTENTIALS[x.potential];
+   const s=getStone(x.stoneId),p=POTENTIALS[x.potential];
    const fixed=Object.entries(s.stats||{}).filter(([k,v])=>Number(v)!==0).map(([k,v])=>`${METRICS[k].label} +${v}`);
    const bonus=Object.entries(s.bonuses||{}).filter(([k,v])=>Number(v)!==0).map(([k,v])=>`${METRICS[k].label}加成 +${v}%`);
    const baseText=[...fixed,...bonus].join('、')||'—';
@@ -157,20 +138,13 @@ function renderInventory(){
  $$('.editInv').forEach(b=>b.onclick=()=>openDialog(b.dataset.id));$$('.delInv').forEach(b=>b.onclick=()=>{state.inventory=state.inventory.filter(x=>x.id!==b.dataset.id);persist();renderInventory()});
 }
 function renderDB(){
- const cards=[];
- for(const b of DB){for(const qid of ['mythic','legendary']){
-  const s=getStone(b.id,qid);
-  const fixed=Object.entries(s.stats).filter(x=>x[1]).map(([k,v])=>METRICS[k].label+' +'+v);
-  const bonus=Object.entries(s.bonuses).filter(x=>x[1]).map(([k,v])=>METRICS[k].label+'加成 +'+v+'%');
-  cards.push(`<article class="db-card ${qid==='legendary'?'quality-legendary':'quality-mythic'}"><div class="db-title"><strong>${s.name}</strong><span class="badge">${QUALITIES[qid].icon} ${QUALITIES[qid].name}</span></div><div class="db-meta">形狀：${s.shape}<br>基礎：${[...fixed,...bonus].join('、')||'—'}<br>類型：${s.type==='fixed'?'固定值':'百分比'}</div></article>`);
- }}
- $('#databaseGrid').innerHTML=cards.join('');
+ $('#databaseGrid').innerHTML=DB.map(s=>{const fixed=Object.entries(s.stats).filter(x=>x[1]).map(([k,v])=>METRICS[k].label+'+'+v),bonus=Object.entries(s.bonuses).filter(x=>x[1]).map(([k,v])=>METRICS[k].label+'加成+'+v+'%');return `<article class="db-card"><div class="db-title"><strong>${s.name}</strong><span class="badge">${s.shape}</span></div><div class="db-meta">顏色：${s.color}<br>基礎：${[...fixed,...bonus].join('、')||'—'}<br>類型：${s.type==='fixed'?'固定值':'百分比'}</div></article>`}).join('');
 }
-function openDialog(id=null){editingInventoryId=id;const x=id?state.inventory.find(y=>y.id===id):null;$('#dialogTitle').textContent=x?'編輯魔石':'新增魔石';$('#invStoneType').innerHTML=stoneOptions(false);$('#invPotential').innerHTML=potentialOptions();$('#invStoneType').value=x?.stoneId||DB[0].id;$('#invQuality').value=x?.quality||'mythic';$('#invPotential').value=x?.potential||'none';$('#invPotentialValue').value=x?.value||0;$('#invFavorite').checked=!!x?.favorite;$('#inventoryDialog').showModal()}
-function saveDialog(){const data={stoneId:$('#invStoneType').value,quality:$('#invQuality').value||'mythic',potential:$('#invPotential').value,value:Number($('#invPotentialValue').value||0),favorite:$('#invFavorite').checked};if(editingInventoryId)Object.assign(state.inventory.find(x=>x.id===editingInventoryId),data);else state.inventory.push({id:uuid(),...data});persist();renderInventory()}
+function openDialog(id=null){editingInventoryId=id;const x=id?state.inventory.find(y=>y.id===id):null;$('#dialogTitle').textContent=x?'編輯魔石':'新增魔石';$('#invStoneType').innerHTML=stoneOptions(false);$('#invPotential').innerHTML=potentialOptions();$('#invStoneType').value=x?.stoneId||DB[0].id;$('#invPotential').value=x?.potential||'none';$('#invPotentialValue').value=x?.value||0;$('#invFavorite').checked=!!x?.favorite;$('#inventoryDialog').showModal()}
+function saveDialog(){const data={stoneId:$('#invStoneType').value,potential:$('#invPotential').value,value:Number($('#invPotentialValue').value||0),favorite:$('#invFavorite').checked};if(editingInventoryId)Object.assign(state.inventory.find(x=>x.id===editingInventoryId),data);else state.inventory.push({id:uuid(),...data});persist();renderInventory()}
 function combos(arr,k){const out=[];function rec(start,c){if(c.length===k){out.push(c.slice());return}for(let i=start;i<arr.length;i++){c.push(arr[i]);rec(i+1,c);c.pop()}}rec(0,[]);return out}
 function optimizerStoneReason(item,combo,metric,base,fullResult){
-  const stone=getStone(item.stoneId,item.quality||'mythic');
+  const stone=getStone(item.stoneId);
   const p=POTENTIALS[item.potential]||POTENTIALS.none;
 
   const directFixed=stone.stats[metric]||0;
@@ -217,12 +191,12 @@ function runOptimizer(){
       const ids=c.map(x=>x.stoneId);
       if(new Set(ids).size!==ids.length)continue;
 
-      const build=c.map(x=>({stoneId:x.stoneId,quality:x.quality||'mythic',potential:x.potential,value:x.value}));
+      const build=c.map(x=>({stoneId:x.stoneId,potential:x.potential,value:x.value}));
       const r=calc(build,metric,base);
 
       // 同分時優先選擇對目標屬性有直接基礎值/加成/精通/增幅的組合，僅作 tie-break，不改變真正最高面板判定。
       const relevance=c.reduce((score,x)=>{
-        const s=getStone(x.stoneId,x.quality||'mythic'),p=POTENTIALS[x.potential]||POTENTIALS.none;
+        const s=getStone(x.stoneId),p=POTENTIALS[x.potential]||POTENTIALS.none;
         return score+(s.stats[metric]||0)+(s.bonuses[metric]||0)+(p.metric===metric?Number(x.value||0):0);
       },0);
 
@@ -249,7 +223,7 @@ function runOptimizer(){
   }).sort((a,b)=>b.marginal-a.marginal);
 
   $('#optimizerStones').innerHTML=explained.map(x=>{
-    const stone=getStone(x.stoneId,x.quality||'mythic'),p=POTENTIALS[x.potential];
+    const stone=getStone(x.stoneId),p=POTENTIALS[x.potential];
     const delta=Math.round(x.marginal*1000)/1000;
     return `<div class="optimizer-card optimizer-explain-card">
       <div class="optimizer-card-head">
@@ -262,7 +236,7 @@ function runOptimizer(){
   }).join('');
 
   const supportCount=explained.filter(x=>{
-    const s=getStone(x.stoneId,x.quality||'mythic'),p=POTENTIALS[x.potential]||POTENTIALS.none;
+    const s=getStone(x.stoneId),p=POTENTIALS[x.potential]||POTENTIALS.none;
     return !(s.stats[metric]||0) && !(s.bonuses[metric]||0) && !(p.metric===metric&&(p.kind==='mastery'||p.kind==='amplify'));
   }).length;
 
@@ -277,7 +251,7 @@ function runOptimizer(){
     ? `本次最佳組合包含 <b>${supportCount}</b> 顆「連動支援型」魔石。它們可能沒有直接${METRICS[metric].label}，但加入後會讓其他魔石的赤曜聚能、形狀條件或潛能連動變強，因此整套面板更高。`
     : `本次最佳組合全部都有直接${METRICS[metric].label}貢獻。`;
 }
-function applyOptimizer(){if(!optimizerSelection)return;state.metric=optimizerSelection.metric;state.baseValues[state.metric]=optimizerSelection.base;state.equipped=optimizerSelection.build.slice();while(state.equipped.length<5)state.equipped.push({stoneId:'',quality:'mythic',potential:'none',value:0});persist();switchTab('build');renderBuild()}
+function applyOptimizer(){if(!optimizerSelection)return;state.metric=optimizerSelection.metric;state.baseValues[state.metric]=optimizerSelection.base;state.equipped=optimizerSelection.build.slice();while(state.equipped.length<5)state.equipped.push({stoneId:'',potential:'none',value:0});persist();switchTab('build');renderBuild()}
 function switchTab(n){
   $$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===n));
   $$('.tab-page').forEach(p=>p.classList.remove('active'));
@@ -328,7 +302,6 @@ function similarity(a,b){
   return hits/Math.max(a.length,b.length);
 }
 
-function inferQualityFromOCR(text){if(/傳說|传说|黃色|黄色/.test(text||''))return 'legendary';if(/神話|神话|紅色|红色/.test(text||''))return 'mythic';return 'mythic';}
 function findBestStoneFromOCR(raw){
   const n=normalizeOCRText(raw);
   let best=null;
@@ -503,7 +476,7 @@ function renderSingleCompareInputs(){
 }
 
 function updateSingleCompareInputInfo(){
-  const stone=getStone($('#cmpStone')?.value,$('#cmpQuality')?.value||'mythic');
+  const stone=getStone($('#cmpStone')?.value);
   const potKey=$('#cmpPotential')?.value||'none';
   const p=POTENTIALS[potKey]||POTENTIALS.none;
   if(!stone) return;
@@ -524,7 +497,7 @@ function getSingleCompareCandidate(){
   const potential=$('#cmpPotential')?.value||'none';
   const value=Number($('#cmpValue')?.value||0);
   if(!stoneId) return null;
-  return {stoneId,quality:$('#cmpQuality')?.value||'mythic',potential,value};
+  return {stoneId,potential,value};
 }
 
 function isLegalReplacement(candidate,replaceIndex){
@@ -541,7 +514,7 @@ function runSingleCompare(){
   let best=null;
 
   for(let i=0;i<5;i++){
-    const currentItem=state.equipped[i]||{stoneId:'',quality:'mythic',potential:'none',value:0};
+    const currentItem=state.equipped[i]||{stoneId:'',potential:'none',value:0};
     const currentStone=currentItem.stoneId?getStone(currentItem.stoneId):null;
     const legal=isLegalReplacement(candidate,i);
 
@@ -554,7 +527,7 @@ function runSingleCompare(){
     }
 
     const build=clone(state.equipped);
-    while(build.length<5) build.push({stoneId:'',quality:'mythic',potential:'none',value:0});
+    while(build.length<5) build.push({stoneId:'',potential:'none',value:0});
     build[i]=clone(candidate);
     const result=calc(build,metric,base);
     const delta=result.panel-current.panel;
@@ -643,7 +616,7 @@ async function handleCompareImage(file){
     const raw=result?.data?.text||'';
     const stone=findBestStoneFromOCR(raw);
     const pot=findBestPotentialFromOCR(raw);
-    if(stone) $('#cmpStone').value=stone.id;if($('#cmpQuality'))$('#cmpQuality').value=inferQualityFromOCR(raw);
+    if(stone) $('#cmpStone').value=stone.id;
     if(pot) $('#cmpPotential').value=pot.key;
     const value=extractPotentialValue(raw,pot?.name||'');
     if(Number.isFinite(value)) $('#cmpValue').value=value;
@@ -668,9 +641,9 @@ function addComparedStoneToInventory(){
 
 if($('#cmpStone')){
   renderSingleCompareInputs();
-  $('#cmpStone').onchange=()=>{updateSingleCompareInputInfo();};if($('#cmpQuality'))$('#cmpQuality').onchange=()=>{updateSingleCompareInputInfo();};
+  $('#cmpStone').onchange=()=>{updateSingleCompareInputInfo();};
   $('#cmpPotential').onchange=()=>{
-    const stone=getStone($('#cmpStone').value,$('#cmpQuality')?.value||'mythic');
+    const stone=getStone($('#cmpStone').value);
     const key=$('#cmpPotential').value;
     $('#cmpValue').value=getRange(stone,key)[0];
     updateSingleCompareInputInfo();
