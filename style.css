@@ -216,40 +216,107 @@
 .quality-legendary{border-color:#a98524!important}
 .slot-quality{font-weight:700}
 
-/* v4.2 目前配裝：魔石｜潛能｜數值｜基礎屬性＋潛能說明 */
+
+/* v4.3：恢復目前配裝原始橫向版型
+   編號｜魔石｜潛能｜數值｜基礎屬性＋潛能說明 */
+#equippedSlots{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
 .slot-card{
   display:grid !important;
-  grid-template-columns:48px minmax(330px,1.55fr) minmax(280px,1.25fr) minmax(130px,.5fr) minmax(380px,1.5fr) !important;
+  grid-template-columns:
+    52px
+    minmax(280px,1.45fr)
+    minmax(250px,1.20fr)
+    minmax(120px,.52fr)
+    minmax(340px,1.35fr) !important;
   gap:10px !important;
   align-items:center !important;
+  padding:12px !important;
+  min-height:110px !important;
 }
-.slot-card .slot-index{grid-column:1 !important;}
-.slot-card > .field:nth-of-type(1){grid-column:2 !important;}
-.slot-card > .field:nth-of-type(2){grid-column:3 !important;}
-.slot-card .slot-value-field{grid-column:4 !important;}
-.slot-card .slot-preview{grid-column:5 !important;}
-.slot-card > .field{min-height:76px !important;}
+
+.slot-card .slot-index{
+  grid-column:1 !important;
+  grid-row:1 !important;
+  align-self:center !important;
+}
+
+.slot-card > .field:nth-of-type(1){
+  grid-column:2 !important;
+  grid-row:1 !important;
+}
+
+.slot-card > .field:nth-of-type(2){
+  grid-column:3 !important;
+  grid-row:1 !important;
+}
+
+.slot-card .slot-value-field{
+  grid-column:4 !important;
+  grid-row:1 !important;
+}
+
+.slot-card .slot-preview{
+  grid-column:5 !important;
+  grid-row:1 !important;
+  min-width:0 !important;
+}
+
+.slot-card > .field{
+  min-height:76px !important;
+  align-self:center !important;
+}
+
 .slot-card .slot-preview.potential-desc{
   min-height:76px !important;
   width:100% !important;
   display:flex !important;
   flex-direction:column !important;
   justify-content:center !important;
-}
-@media(max-width:900px){
-  .slot-card{
-    grid-template-columns:42px 1fr !important;
-  }
-  .slot-card .slot-index{grid-column:1 !important;}
-  .slot-card > .field,
-  .slot-card .slot-value-field,
-  .slot-card .slot-preview{grid-column:2 !important;}
+  box-sizing:border-box !important;
 }
 
-.changelog-list{overflow-y:auto;max-height:68vh;display:flex;flex-direction:column;gap:10px;padding:4px 2px}
-.changelog-item{border:1px solid var(--line);background:#07111c;padding:14px 16px;border-radius:8px}
-.changelog-item.latest{border-color:var(--gold)}
-.changelog-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
-.changelog-head strong{color:var(--gold);font-size:18px}
-.changelog-head span{color:var(--muted);font-size:13px}
-.changelog-item ul{margin:0;padding-left:22px;line-height:1.75}
+.slot-card .stone-base-desc,
+.slot-card .potential-function-desc{
+  width:100% !important;
+}
+
+@media(max-width:1100px){
+  .slot-card{
+    grid-template-columns:
+      48px
+      minmax(240px,1.35fr)
+      minmax(210px,1.10fr)
+      110px
+      minmax(280px,1.20fr) !important;
+  }
+}
+
+@media(max-width:820px){
+  .slot-card{
+    grid-template-columns:42px 1fr !important;
+    align-items:start !important;
+  }
+
+  .slot-card .slot-index{
+    grid-column:1 !important;
+    grid-row:1 !important;
+  }
+
+  .slot-card > .field:nth-of-type(1),
+  .slot-card > .field:nth-of-type(2),
+  .slot-card .slot-value-field,
+  .slot-card .slot-preview{
+    grid-column:2 !important;
+    grid-row:auto !important;
+  }
+
+  .slot-card > .field,
+  .slot-card .slot-preview.potential-desc{
+    min-height:auto !important;
+  }
+}
