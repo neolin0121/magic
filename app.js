@@ -120,21 +120,7 @@ function updateBuild(){
  persist();
 }
 function renderInventory(){
- $('#inventoryList').innerHTML=state.inventory.length?state.inventory.map(x=>{
-   const s=getStone(x.stoneId),p=POTENTIALS[x.potential];
-   const fixed=Object.entries(s.stats||{}).filter(([k,v])=>Number(v)!==0).map(([k,v])=>`${METRICS[k].label} +${v}`);
-   const bonus=Object.entries(s.bonuses||{}).filter(([k,v])=>Number(v)!==0).map(([k,v])=>`${METRICS[k].label}加成 +${v}%`);
-   const baseText=[...fixed,...bonus].join('、')||'—';
-   return `<article class="inv-card ${x.favorite?'favorite':''}">
-     <div class="inv-title"><strong>${s.name}</strong>${x.favorite?'<span class="badge">裝備中</span>':''}</div>
-     <div class="inv-meta">
-       ${s.shape}・${s.color}<br>
-       <span class="inventory-base-attr">基礎屬性：${baseText}</span><br>
-       潛能：${p.name} ${x.value}${p.unit}
-     </div>
-     <div class="inv-actions"><button class="btn editInv" data-id="${x.id}">編輯</button><button class="btn delInv" data-id="${x.id}">刪除</button></div>
-   </article>`;
- }).join(''):'<div class="empty">目前沒有魔石。</div>';
+ $('#inventoryList').innerHTML=state.inventory.length?state.inventory.map(x=>{const s=getStone(x.stoneId),p=POTENTIALS[x.potential];return `<article class="inv-card ${x.favorite?'favorite':''}"><div class="inv-title"><strong>${s.name}</strong>${x.favorite?'<span class="badge">裝備中</span>':''}</div><div class="inv-meta">${s.shape}・${s.color}<br>潛能：${p.name} ${x.value}${p.unit}</div><div class="inv-actions"><button class="btn editInv" data-id="${x.id}">編輯</button><button class="btn delInv" data-id="${x.id}">刪除</button></div></article>`}).join(''):'<div class="empty">目前沒有魔石。</div>';
  $$('.editInv').forEach(b=>b.onclick=()=>openDialog(b.dataset.id));$$('.delInv').forEach(b=>b.onclick=()=>{state.inventory=state.inventory.filter(x=>x.id!==b.dataset.id);persist();renderInventory()});
 }
 function renderDB(){
