@@ -199,3 +199,19 @@
   color:#f2c14e;
   font-weight:700;
 }
+
+.build-version{
+  display:block;
+  margin-top:4px;
+  font-size:11px;
+  color:#6f8194;
+}
+.inventory-base-attr{
+  color:#f2c14e !important;
+  font-weight:700 !important;
+}
+
+/* v4 品質系統 */
+.quality-mythic{border-color:#8d3a3a!important}
+.quality-legendary{border-color:#a98524!important}
+.slot-quality{font-weight:700}
