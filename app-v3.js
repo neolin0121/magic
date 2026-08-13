@@ -1,3 +1,4 @@
+console.log('豆腐魔石配裝器 build 2026.08.13-v4.1');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -53,7 +54,6 @@ function migrateQualityData(){
  const fix=x=>{if(x&&x.stoneId&&!x.quality)x.quality='mythic';return x};
  (state.equipped||[]).forEach(fix);(state.inventory||[]).forEach(fix);persist();
 }
-migrateQualityData();
 
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const fmt=(n,d=3)=>Number(n||0).toLocaleString('zh-TW',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -66,6 +66,8 @@ const getStone=(id,quality='mythic')=>{
 };
 const getRange=(s,k)=>(s.type==='fixed'?POTENTIALS[k].fixed:POTENTIALS[k].percent);
 const persist=()=>localStorage.setItem(KEY,JSON.stringify(state));
+// v4.1：persist 可用後再進行舊資料品質升級
+migrateQualityData();
 const stoneOptions=(empty=true)=>(empty?'<option value="">未裝備</option>':'')+DB.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
 function qualityOptions(selected='mythic'){return Object.values(QUALITIES).map(q=>`<option value="${q.id}" ${q.id===selected?'selected':''}>${q.icon} ${q.name}</option>`).join('')}
 function stoneOptionsForSlot(slotIndex){
