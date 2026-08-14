@@ -360,3 +360,19 @@
 }
 
 .brand-logo{padding:0!important;overflow:hidden;background:transparent!important}.brand-logo img{width:100%;height:100%;display:block;object-fit:cover}.settings-data-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+.brand-logo{
+  width:64px !important;
+  height:64px !important;
+  flex:0 0 64px !important;
+  overflow:visible !important;
+  background:transparent !important;
+}
+.brand-logo img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+}
+@media (max-width:700px){
+  .brand-logo{width:52px !important;height:52px !important;flex-basis:52px !important;}
+}
