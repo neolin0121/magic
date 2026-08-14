@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.14-v4.4.5.1');
+console.log('豆腐魔石配裝器 build 2026.08.14-v4.4.6');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -796,3 +796,12 @@ if($('#configTabs')){
   $('#copyConfigConfirmBtn').onclick=confirmCopyConfig;
   renderConfigTabs();
 }
+
+function trackEvent(name,params={}){if(typeof window.gtag==='function')window.gtag('event',name,params);}
+document.addEventListener('click',e=>{const el=e.target.closest('button,a');if(!el)return;const id=el.id||'',t=el.textContent||'';
+if(id==='optimizeBtn'||t.includes('開始最佳化'))trackEvent('optimizer_run');
+else if(id==='compareBtn'||t.includes('單顆比對'))trackEvent('single_gem_compare');
+else if(el.classList.contains('config-tab'))trackEvent('config_switch',{config_index:Number(el.dataset.config||0)+1});
+else if(id==='exportBtn')trackEvent('data_export');
+else if(id==='helpBtn')trackEvent('help_open');
+else if(id==='changelogBtn')trackEvent('changelog_open');});
