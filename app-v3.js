@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.14-v4.4.1');
+console.log('豆腐魔石配裝器 build 2026.08.14-v4.4.2');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -195,10 +195,10 @@ function bindBuild(){
 }
 function updateBuild(){
  const m=state.metric,b=state.baseValues[m]||0,r=calc(state.equipped,m,b),label=METRICS[m].label;$('#panelStat').textContent=r.panel.toLocaleString('zh-TW');$('#panelExact').textContent=`精確值 ${fmt(r.panelRaw)}，面板四捨五入`;$('#stoneOnlyStat').textContent=fmt(r.stoneOnly,1);
- if(m==='quick'){const ratio=state.quickDamageRatio||30;$('#damageBonus').textContent=fmt(r.panel/ratio,1)+'%';$('#damageHint').textContent=`迅擊每 ${ratio} 點 = 基礎/核心技能傷害 +1%`}else{$('#damageBonus').textContent='—';$('#damageHint').textContent='尚未建立此屬性的傷害換算公式'}
+ {const ratio=30;$('#damageBonus').textContent=fmt(r.panel/ratio,1)+'%';if(m==='quick')$('#damageHint').textContent='迅擊每 30 點 = 基礎／核心技能傷害 +1%';else if(m==='damage')$('#damageHint').textContent='馭傷每 30 點 = 寵物傷害／治療／護盾／減傷 +1%';else $('#damageHint').textContent='強襲每 30 點 = 戰術／終極技能傷害 +1%';}
  $('#equippedCount').textContent=state.equipped.filter(x=>x&&x.stoneId).length;$('#redCount').textContent=r.redCount;$('#shapeCount').textContent=r.shapeCount;$('#resonanceTotal').textContent=fmt(r.resonance,1)+'%';$('#sameOriginTotal').textContent=fmt(r.sameOrigin,1)+'%';$('#sumFixed').textContent=fmt(r.fixed);$('#sumMastery').textContent=fmt(r.mastery);$('#sumBonus').textContent=fmt(r.bonus)+'%';$('#sumAmplify').textContent=fmt(r.amplify)+'%';$('#baseContribution').textContent=fmt(r.baseContribution);$('#stoneSummary').textContent=fmt(r.stoneOnly);$('#formulaText').textContent=`${label}面板＝（角色基礎${label}＋有效固定${label}＋${label}精通）×（1＋${label}加成）×（1＋${label}增幅）`;
  $('#detailTable').innerHTML=r.details.length?r.details.map((d,i)=>`<tr><td>${i+1}</td><td>${d.stoneName}</td><td>${d.potentialName}</td><td>${fmt(d.raw)}${d.unit}</td><td>${fmt(d.eff)}${d.unit}</td><td>${fmt(d.boost)}%</td><td>${fmt(d.ef)}</td><td>${fmt(d.eb)}%</td></tr>`).join(''):'<tr><td colspan="8">尚未裝備魔石</td></tr>';
- if(state.compare&&state.compare.metric===m){const dq=r.panel-state.compare.panel;$('#compareEmpty').classList.add('hidden');$('#compareContent').classList.remove('hidden');$('#compareDelta').textContent=(dq>=0?'+':'')+dq;$('#compareDelta').className=dq>=0?'positive':'negative';if(m==='quick'){const dd=dq/(state.quickDamageRatio||30);$('#compareDamageDelta').textContent=(dd>=0?'+':'')+fmt(dd,2)+'%';$('#compareDamageDelta').className=dd>=0?'positive':'negative'}else{$('#compareDamageDelta').textContent='—';$('#compareDamageDelta').className=''}$('#compareText').textContent=`基準：${state.compare.panel} ${label}`}else{$('#compareEmpty').classList.remove('hidden');$('#compareContent').classList.add('hidden')}
+ if(state.compare&&state.compare.metric===m){const dq=r.panel-state.compare.panel;$('#compareEmpty').classList.add('hidden');$('#compareContent').classList.remove('hidden');$('#compareDelta').textContent=(dq>=0?'+':'')+dq;$('#compareDelta').className=dq>=0?'positive':'negative';const dd=dq/30;$('#compareDamageDelta').textContent=(dd>=0?'+':'')+fmt(dd,2)+'%';$('#compareDamageDelta').className=dd>=0?'positive':'negative';$('#compareText').textContent=`基準：${state.compare.panel} ${label}`}else{$('#compareEmpty').classList.remove('hidden');$('#compareContent').classList.add('hidden')}
  persist();
 }
 function renderInventory(){
@@ -367,7 +367,7 @@ $$('.tab').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$$('.seg').forEach
   state.configs[active]={name,metric:state.metric,baseValues:clone(state.baseValues),equipped:clone(state.equipped)};
   state.compare=null;
   persist();renderConfigTabs();renderBuild();renderInventory();
-};$('#addInventoryBtn').onclick=()=>openDialog();$('#saveInventoryItemBtn').onclick=e=>{e.preventDefault();saveDialog();$('#inventoryDialog').close()};$('#runOptimizerBtn').onclick=runOptimizer;$('#applyOptimizerBtn').onclick=applyOptimizer;$('#quickDamageRatio').value=state.quickDamageRatio||30;$('#quickDamageRatio').oninput=e=>{state.quickDamageRatio=Number(e.target.value||30);persist();updateBuild()};$('#exportBtn').onclick=exportData;$('#importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};$('#clearStorageBtn').onclick=()=>{if(confirm('確定清除本機存檔？')){localStorage.removeItem(KEY);location.reload()}};$('#invStoneType').innerHTML=stoneOptions(false);$('#invPotential').innerHTML=potentialOptions();renderBuild();renderInventory();renderDB();
+};$('#addInventoryBtn').onclick=()=>openDialog();$('#saveInventoryItemBtn').onclick=e=>{e.preventDefault();saveDialog();$('#inventoryDialog').close()};$('#runOptimizerBtn').onclick=runOptimizer;$('#applyOptimizerBtn').onclick=applyOptimizer;$('#exportBtn').onclick=exportData;$('#importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};$('#clearStorageBtn').onclick=()=>{if(confirm('確定清除本機存檔？')){localStorage.removeItem(KEY);location.reload()}};$('#invStoneType').innerHTML=stoneOptions(false);$('#invPotential').innerHTML=potentialOptions();renderBuild();renderInventory();renderDB();
 
 function showHelpPage(name){$$(".help-tab").forEach(b=>b.classList.toggle("active",b.dataset.help===name));$$(".help-section").forEach(s=>s.classList.toggle("active",s.dataset.helpPage===name));const c=$(".help-content");if(c)c.scrollTop=0}
 $("#helpBtn").onclick=()=>{showHelpPage("quickstart");$("#helpDialog").showModal()};
