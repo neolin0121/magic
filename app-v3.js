@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.13-v4.3');
+console.log('豆腐魔石配裝器 build 2026.08.14-v4.4');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -50,6 +50,60 @@ function seedInventory(){
 }
 function load(){try{const r=localStorage.getItem(KEY);if(!r){const s=clone(defaults);s.inventory=seedInventory();return s}return {...clone(defaults),...JSON.parse(r)}}catch{const s=clone(defaults);s.inventory=seedInventory();return s}}
 let state=load(),optimizerSelection=null,editingInventoryId=null;
+
+function ensureConfigSystem(){
+  if(!Array.isArray(state.configs)||state.configs.length!==3){
+    const snap={
+      metric:state.metric||'quick',
+      baseValues:clone(state.baseValues||{quick:0,damage:0,strong:0}),
+      equipped:clone(state.equipped||[])
+    };
+    state.configs=[
+      {...clone(snap),name:'配置 1'},
+      {...clone(snap),name:'配置 2'},
+      {...clone(snap),name:'配置 3'}
+    ];
+    state.activeConfig=0;
+  }
+  if(!Number.isInteger(state.activeConfig)||state.activeConfig<0||state.activeConfig>2)state.activeConfig=0;
+  state.configs.forEach((c,i)=>{
+    if(!c.name)c.name=`配置 ${i+1}`;
+    if(!c.metric)c.metric='quick';
+    if(!c.baseValues)c.baseValues={quick:0,damage:0,strong:0};
+    if(!Array.isArray(c.equipped))c.equipped=[];
+  });
+}
+function syncActiveConfig(){
+  if(!Array.isArray(state.configs)||!state.configs[state.activeConfig])return;
+  const c=state.configs[state.activeConfig];
+  c.metric=state.metric;
+  c.baseValues=clone(state.baseValues);
+  c.equipped=clone(state.equipped);
+}
+function renderConfigTabs(){
+  if(!document.querySelector('#configTabs'))return;
+  ensureConfigSystem();
+  $$('.config-tab').forEach((b,i)=>{
+    b.textContent=state.configs[i].name||`配置 ${i+1}`;
+    b.classList.toggle('active',i===state.activeConfig);
+  });
+  const label=$('#currentConfigName');
+  if(label)label.textContent=state.configs[state.activeConfig].name||`配置 ${state.activeConfig+1}`;
+}
+function switchConfig(i){
+  ensureConfigSystem();
+  syncActiveConfig();
+  state.activeConfig=i;
+  const c=state.configs[i];
+  state.metric=c.metric||'quick';
+  state.baseValues=clone(c.baseValues||{quick:0,damage:0,strong:0});
+  state.equipped=clone(c.equipped||[]);
+  while(state.equipped.length<5)state.equipped.push({stoneId:'',quality:'mythic',potential:'none',value:0});
+  persist();
+  renderConfigTabs();
+  renderBuild();
+}
+
 function migrateQualityData(){
  const fix=x=>{if(x&&x.stoneId&&!x.quality)x.quality='mythic';return x};
  (state.equipped||[]).forEach(fix);(state.inventory||[]).forEach(fix);persist();
@@ -65,9 +119,11 @@ const getStone=(id,quality='mythic')=>{
  bonuses:Object.fromEntries(Object.entries(base.bonuses||{}).map(([k,v])=>[k,Number((v*scale).toFixed(10))]))};
 };
 const getRange=(s,k)=>(s.type==='fixed'?POTENTIALS[k].fixed:POTENTIALS[k].percent);
-const persist=()=>localStorage.setItem(KEY,JSON.stringify(state));
+const persist=()=>{syncActiveConfig();localStorage.setItem(KEY,JSON.stringify(state));};
 // v4.1：persist 可用後再進行舊資料品質升級
 migrateQualityData();
+ensureConfigSystem();
+persist();
 const stoneOptions=(empty=true)=>(empty?'<option value="">未裝備</option>':'')+DB.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
 function qualityOptions(selected='mythic'){return Object.values(QUALITIES).map(q=>`<option value="${q.id}" ${q.id===selected?'selected':''}>${q.icon} ${q.name}</option>`).join('')}
 function stoneOptionsForSlot(slotIndex){
@@ -294,17 +350,24 @@ function switchTab(n){
   if(n==='singlecompare' && $('#cmpStone')) renderSingleCompareInputs();
 }
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='neo-gem-data.json';a.click();URL.revokeObjectURL(a.href)}
-async function importData(file){const parsed=JSON.parse(await file.text());state={...clone(defaults),...parsed};persist();renderBuild();renderInventory();renderDB()}
+async function importData(file){const parsed=JSON.parse(await file.text());state={...clone(defaults),...parsed};migrateQualityData();ensureConfigSystem();persist();renderConfigTabs();renderBuild();renderInventory();renderDB()}
 $$('.tab').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$$('.seg').forEach(b=>b.onclick=()=>{state.metric=b.dataset.metric;persist();renderBuild()});$('#baseStatInput').oninput=e=>{state.baseValues[state.metric]=Number(e.target.value||0);persist();updateBuild()};$('#loadCurrentBtn').onclick=()=>{state.metric='quick';state.baseValues.quick=324.7;state.equipped=clone(defaults.equipped);persist();renderBuild()};$('#saveCompareBtn').onclick=()=>{state.compare={metric:state.metric,panel:calc(state.equipped,state.metric,state.baseValues[state.metric]).panel};persist();updateBuild()};$('#resetBtn').onclick=()=>{
-  const preservedInventory=clone(state.inventory||[]);
-  const s=clone(defaults);
-  s.inventory=preservedInventory;
-  s.compare=null;
-  state=s;
-  persist();
-  renderBuild();
-  renderInventory();
-};$('#addInventoryBtn').onclick=()=>openDialog();$('#saveInventoryItemBtn').onclick=e=>{e.preventDefault();saveDialog();$('#inventoryDialog').close()};$('#runOptimizerBtn').onclick=runOptimizer;$('#applyOptimizerBtn').onclick=applyOptimizer;$('#quickDamageRatio').value=state.quickDamageRatio||30;$('#quickDamageRatio').oninput=e=>{state.quickDamageRatio=Number(e.target.value||30);persist();updateBuild()};$('#exportBtn').onclick=exportData;$('#importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};$('#clearStorageBtn').onclick=()=>{if(confirm('確定清除本機存檔？')){localStorage.removeItem(KEY);location.reload()}};$('#invStoneType').innerHTML=stoneOptions(false);$('#invPotential').innerHTML=potentialOptions();renderBuild();renderInventory();renderDB();
+  ensureConfigSystem();
+  syncActiveConfig();
+  const inventory=clone(state.inventory||[]);
+  const configs=clone(state.configs);
+  const active=state.activeConfig;
+  const name=configs[active]?.name||`配置 ${active+1}`;
+  state.metric='quick';
+  state.baseValues={quick:0,damage:0,strong:0};
+  state.equipped=Array.from({length:5},()=>({stoneId:'',quality:'mythic',potential:'none',value:0}));
+  state.inventory=inventory;
+  state.configs=configs;
+  state.activeConfig=active;
+  state.configs[active]={name,metric:state.metric,baseValues:clone(state.baseValues),equipped:clone(state.equipped)};
+  state.compare=null;
+  persist();renderConfigTabs();renderBuild();renderInventory();
+}$('#addInventoryBtn').onclick=()=>openDialog();$('#saveInventoryItemBtn').onclick=e=>{e.preventDefault();saveDialog();$('#inventoryDialog').close()};$('#runOptimizerBtn').onclick=runOptimizer;$('#applyOptimizerBtn').onclick=applyOptimizer;$('#quickDamageRatio').value=state.quickDamageRatio||30;$('#quickDamageRatio').oninput=e=>{state.quickDamageRatio=Number(e.target.value||30);persist();updateBuild()};$('#exportBtn').onclick=exportData;$('#importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};$('#clearStorageBtn').onclick=()=>{if(confirm('確定清除本機存檔？')){localStorage.removeItem(KEY);location.reload()}};$('#invStoneType').innerHTML=stoneOptions(false);$('#invPotential').innerHTML=potentialOptions();renderBuild();renderInventory();renderDB();
 
 function showHelpPage(name){$$(".help-tab").forEach(b=>b.classList.toggle("active",b.dataset.help===name));$$(".help-section").forEach(s=>s.classList.toggle("active",s.dataset.helpPage===name));const c=$(".help-content");if(c)c.scrollTop=0}
 $("#helpBtn").onclick=()=>{showHelpPage("quickstart");$("#helpDialog").showModal()};
@@ -693,4 +756,43 @@ if($('#changelogBtn')){
   $('#changelogDialog').addEventListener('click',e=>{
     if(e.target===$('#changelogDialog'))$('#changelogDialog').close();
   });
+}
+
+
+function openRenameConfig(){
+  ensureConfigSystem();
+  $('#renameConfigInput').value=state.configs[state.activeConfig].name||`配置 ${state.activeConfig+1}`;
+  $('#renameConfigDialog').showModal();
+}
+function saveRenameConfig(){
+  const name=($('#renameConfigInput').value||'').trim()||`配置 ${state.activeConfig+1}`;
+  state.configs[state.activeConfig].name=name.slice(0,20);
+  persist();renderConfigTabs();$('#renameConfigDialog').close();
+}
+function openCopyConfig(){
+  ensureConfigSystem();syncActiveConfig();
+  $('#copyConfigTarget').innerHTML=state.configs.map((c,i)=>`<option value="${i}" ${i===state.activeConfig?'disabled':''}>${c.name}</option>`).join('');
+  const first=[0,1,2].find(i=>i!==state.activeConfig);
+  if(first!==undefined)$('#copyConfigTarget').value=String(first);
+  $('#copyConfigDialog').showModal();
+}
+function confirmCopyConfig(){
+  const target=Number($('#copyConfigTarget').value);
+  if(target===state.activeConfig||target<0||target>2)return;
+  syncActiveConfig();
+  const targetName=state.configs[target].name||`配置 ${target+1}`;
+  state.configs[target]={...clone(state.configs[state.activeConfig]),name:targetName};
+  persist();renderConfigTabs();$('#copyConfigDialog').close();
+}
+if($('#configTabs')){
+  $$('.config-tab').forEach((b,i)=>b.onclick=()=>switchConfig(i));
+  $('#renameConfigBtn').onclick=openRenameConfig;
+  $('#renameConfigCloseBtn').onclick=()=>$('#renameConfigDialog').close();
+  $('#renameConfigCancelBtn').onclick=()=>$('#renameConfigDialog').close();
+  $('#renameConfigSaveBtn').onclick=saveRenameConfig;
+  $('#copyConfigBtn').onclick=openCopyConfig;
+  $('#copyConfigCloseBtn').onclick=()=>$('#copyConfigDialog').close();
+  $('#copyConfigCancelBtn').onclick=()=>$('#copyConfigDialog').close();
+  $('#copyConfigConfirmBtn').onclick=confirmCopyConfig;
+  renderConfigTabs();
 }
