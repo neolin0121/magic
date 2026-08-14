@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#071019">
 <title>豆腐 魔石配裝器</title>
-<link rel="stylesheet" href="style.css?v=20260814-v4.4.5" />
+<link rel="stylesheet" href="style.css?v=20260814-v4.4.5.1" />
 </head>
 <body>
 <div class="app-shell">
 <header class="topbar">
   <div class="brand"><div class="brand-mark brand-logo"><img src="tofu-logo.png" alt="豆腐 Logo"></div><div><h1>豆腐 魔石配裝器</h1><p>資料庫・收藏・最佳化・即時計算</p>
-          <span class="build-version">版本：2026.08.14-v4.4.5</span></div></div>
+          <span class="build-version">版本：2026.08.14-v4.4.5.1</span></div></div>
   <div class="top-actions">
         <button id="changelogBtn" class="btn">更新履歷</button><button id="helpBtn" class="btn help-btn">？ 使用說明</button><button id="loadCurrentBtn" class="btn primary">載入目前配置</button><button id="saveCompareBtn" class="btn">設為比較基準</button><button id="resetBtn" class="btn danger" title="重設配裝與設定，不會恢復已刪除的魔石">重設</button></div>
 </header>
@@ -199,7 +199,7 @@
       <div><h2>更新履歷</h2><p>豆腐魔石配裝器版本更新紀錄。</p></div>
       <button id="changelogCloseBtn" class="icon-btn" type="button">×</button>
     </div>
-    <div class="changelog-list"><article class="changelog-item latest"><div class="changelog-head"><strong>v4.4.5</strong><span>2026-08-14</span></div><ul><li>基礎數值欄位名稱更新為「神器提供數值」。</li><li>相關公式顯示文字同步更新。</li><li>計算邏輯不變，為後續神器配裝器分頁預留架構。</li></ul></article><article class="changelog-item latest"><div class="changelog-head"><strong>v4.4.4</strong><span>2026-08-14</span></div><ul><li>配裝器頁面移除「計算摘要」顯示。</li><li>配裝器頁面移除「逐顆明細」顯示。</li><li>保留「比較基準」功能與主要面板計算結果。</li></ul></article><article class="changelog-item latest"><div class="changelog-head"><strong>v4.4.3</strong><span>2026-08-14</span></div><ul><li>左上角 Logo 改用去背勇者角色圖片。</li></ul></article><article class="changelog-item latest"><div class="changelog-head"><strong>v4.4.2</strong><span>2026-08-14</span></div><ul><li>取消設定頁計算設定。</li><li>固定迅擊／馭傷／強襲每 30 點換算 +1%。</li><li>左上角品牌符號改為圖片 Logo。</li></ul></article>
+    <div class="changelog-list"><article class="changelog-item latest"><div class="changelog-head"><strong>v4.4.5.1</strong><span>2026-08-14</span></div><ul><li>修正移除「計算摘要／逐顆明細」後殘留程式引用，造成部分按鍵失效的問題。</li><li>神器提供數值與其他功能維持不變。</li></ul></article><article class="changelog-item latest"><div class="changelog-head"><strong>v4.4.5</strong><span>2026-08-14</span></div><ul><li>基礎數值欄位名稱更新為「神器提供數值」。</li><li>相關公式顯示文字同步更新。</li><li>計算邏輯不變，為後續神器配裝器分頁預留架構。</li></ul></article><article class="changelog-item latest"><div class="changelog-head"><strong>v4.4.4</strong><span>2026-08-14</span></div><ul><li>配裝器頁面移除「計算摘要」顯示。</li><li>配裝器頁面移除「逐顆明細」顯示。</li><li>保留「比較基準」功能與主要面板計算結果。</li></ul></article><article class="changelog-item latest"><div class="changelog-head"><strong>v4.4.3</strong><span>2026-08-14</span></div><ul><li>左上角 Logo 改用去背勇者角色圖片。</li></ul></article><article class="changelog-item latest"><div class="changelog-head"><strong>v4.4.2</strong><span>2026-08-14</span></div><ul><li>取消設定頁計算設定。</li><li>固定迅擊／馭傷／強襲每 30 點換算 +1%。</li><li>左上角品牌符號改為圖片 Logo。</li></ul></article>
       <article class="changelog-item latest">
         <div class="changelog-head"><strong>v4.4</strong><span>2026-08-14</span></div>
         <ul>
@@ -410,6 +410,6 @@
 
 <dialog id="inventoryDialog"><form method="dialog" class="dialog-card"><div class="section-head"><h2 id="dialogTitle">新增魔石</h2><button value="cancel" class="icon-btn">×</button></div><label>魔石種類<select id="invStoneType"></select></label><label>品質<select id="invQuality"><option value="mythic">🔴 紅色神話</option><option value="legendary">🟡 黃色傳說</option></select></label><label>潛能<select id="invPotential"></select></label><label>潛能數值<input id="invPotentialValue" type="number" step="0.1"></label><label class="favorite-row"><input id="invFavorite" type="checkbox"> 收藏 ⭐</label><div class="dialog-actions"><button value="cancel" class="btn">取消</button><button id="saveInventoryItemBtn" value="default" class="btn primary">儲存</button></div></form></dialog>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="app-v3.js?v=20260814-v4.4.5"></script>
+<script src="app-v3.js?v=20260814-v4.4.5.1"></script>
 </body>
 </html>
