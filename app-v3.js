@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.14-v4.4.6');
+console.log('豆腐魔石配裝器 build 2026.08.19-v4.4.7');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -50,6 +50,32 @@ function seedInventory(){
 }
 function load(){try{const r=localStorage.getItem(KEY);if(!r){const s=clone(defaults);s.inventory=seedInventory();return s}return {...clone(defaults),...JSON.parse(r)}}catch{const s=clone(defaults);s.inventory=seedInventory();return s}}
 let state=load(),optimizerSelection=null,editingInventoryId=null;
+
+function getCurrentConfigSnapshot(){
+  return {
+    metric:state.metric||'quick',
+    baseValues:clone(state.baseValues||{quick:0,damage:0,strong:0}),
+    equipped:clone(state.equipped||[])
+  };
+}
+function saveCurrentConfigSnapshot(){
+  state.savedCurrentConfig=getCurrentConfigSnapshot();
+  persist();
+}
+function loadCurrentConfigSnapshot(){
+  const c=state.savedCurrentConfig;
+  if(!c)return false;
+  state.metric=c.metric||'quick';
+  state.baseValues=clone(c.baseValues||{quick:0,damage:0,strong:0});
+  state.equipped=clone(c.equipped||[]);
+  while(state.equipped.length<5){
+    state.equipped.push({stoneId:'',quality:'mythic',potential:'none',value:0});
+  }
+  persist();
+  renderBuild();
+  return true;
+}
+
 
 function ensureConfigSystem(){
   if(!Array.isArray(state.configs)||state.configs.length!==3){
@@ -351,7 +377,15 @@ function switchTab(n){
 }
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='neo-gem-data.json';a.click();URL.revokeObjectURL(a.href)}
 async function importData(file){const parsed=JSON.parse(await file.text());state={...clone(defaults),...parsed};migrateQualityData();ensureConfigSystem();persist();renderConfigTabs();renderBuild();renderInventory();renderDB()}
-$$('.tab').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$$('.seg').forEach(b=>b.onclick=()=>{state.metric=b.dataset.metric;persist();renderBuild()});$('#baseStatInput').oninput=e=>{state.baseValues[state.metric]=Number(e.target.value||0);persist();updateBuild()};$('#loadCurrentBtn').onclick=()=>{state.metric='quick';state.baseValues.quick=324.7;state.equipped=clone(defaults.equipped);persist();renderBuild()};$('#saveCompareBtn').onclick=()=>{state.compare={metric:state.metric,panel:calc(state.equipped,state.metric,state.baseValues[state.metric]).panel};persist();updateBuild()};$('#resetBtn').onclick=()=>{
+$$('.tab').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$$('.seg').forEach(b=>b.onclick=()=>{state.metric=b.dataset.metric;persist();renderBuild()});$('#baseStatInput').oninput=e=>{state.baseValues[state.metric]=Number(e.target.value||0);persist();updateBuild()};$('#saveCurrentBtn').onclick=()=>{
+  saveCurrentConfigSnapshot();
+  alert('目前配置已儲存。');
+};
+$('#loadCurrentBtn').onclick=()=>{
+  if(!loadCurrentConfigSnapshot()){
+    alert('尚未儲存目前配置。請先按「儲存目前配置」。');
+  }
+};$('#saveCompareBtn').onclick=()=>{state.compare={metric:state.metric,panel:calc(state.equipped,state.metric,state.baseValues[state.metric]).panel};persist();updateBuild()};$('#resetBtn').onclick=()=>{
   ensureConfigSystem();
   syncActiveConfig();
   const inventory=clone(state.inventory||[]);
@@ -804,4 +838,6 @@ else if(id==='compareBtn'||t.includes('單顆比對'))trackEvent('single_gem_com
 else if(el.classList.contains('config-tab'))trackEvent('config_switch',{config_index:Number(el.dataset.config||0)+1});
 else if(id==='exportBtn')trackEvent('data_export');
 else if(id==='helpBtn')trackEvent('help_open');
-else if(id==='changelogBtn')trackEvent('changelog_open');});
+else if(id==='changelogBtn')trackEvent('changelog_open');
+else if(id==='saveCurrentBtn')trackEvent('save_current_config');
+else if(id==='loadCurrentBtn')trackEvent('load_current_config');});
