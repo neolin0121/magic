@@ -414,70 +414,17 @@
   line-height:1.55 !important;
 }
 
-/* v4.4.12 FINAL：目前配裝固定欄位
-   編號｜魔石｜潛能｜數值｜基礎屬性＋潛能說明 */
-@media (min-width:821px){
-  #equippedSlots .slot-card{
-    display:grid !important;
-    grid-template-columns:
-      52px
-      minmax(310px,1.35fr)
-      minmax(260px,1.10fr)
-      120px
-      minmax(360px,1.35fr) !important;
-    grid-template-rows:auto !important;
-    gap:10px !important;
-    align-items:center !important;
-    min-height:96px !important;
-    padding:12px !important;
-  }
 
-  #equippedSlots .slot-card .slot-index{
-    grid-column:1 !important;
-    grid-row:1 !important;
-    align-self:center !important;
-  }
-
-  #equippedSlots .slot-card .stone-field{
-    grid-column:2 !important;
-    grid-row:1 !important;
-    display:flex !important;
-    flex-direction:column !important;
-    min-width:0 !important;
-  }
-
-  #equippedSlots .slot-card .potential-field{
-    grid-column:3 !important;
-    grid-row:1 !important;
-    display:flex !important;
-    flex-direction:column !important;
-    min-width:0 !important;
-  }
-
-  #equippedSlots .slot-card .slot-value-field{
-    grid-column:4 !important;
-    grid-row:1 !important;
-    display:flex !important;
-    flex-direction:column !important;
-    min-width:0 !important;
-  }
-
-  #equippedSlots .slot-card .slot-preview{
-    grid-column:5 !important;
-    grid-row:1 !important;
-    min-width:0 !important;
-    width:100% !important;
-  }
-
-  #equippedSlots .slot-card .stone-field select,
-  #equippedSlots .slot-card .potential-field select,
-  #equippedSlots .slot-card .slot-value-field input{
-    width:100% !important;
-    box-sizing:border-box !important;
-  }
+/* v4.4.13：目前配裝硬性定位，桌機位置由 inline style 控制 */
+#equippedSlots .slot-preview.potential-desc,
+#equippedSlots .slot-preview.potential-desc .stone-base-desc,
+#equippedSlots .slot-preview.potential-desc .potential-function-desc,
+#equippedSlots .slot-preview.potential-desc span,
+#equippedSlots .slot-preview.potential-desc b{
+  font-size:16px !important;
+  line-height:1.55 !important;
 }
 
-/* 行動版維持單欄堆疊 */
 @media (max-width:820px){
   #equippedSlots .slot-card{
     grid-template-columns:42px 1fr !important;
@@ -493,14 +440,4 @@
     grid-row:auto !important;
     width:100% !important;
   }
-}
-
-/* 右側說明固定 16px */
-#equippedSlots .slot-preview.potential-desc,
-#equippedSlots .slot-preview.potential-desc .stone-base-desc,
-#equippedSlots .slot-preview.potential-desc .potential-function-desc,
-#equippedSlots .slot-preview.potential-desc span,
-#equippedSlots .slot-preview.potential-desc b{
-  font-size:16px !important;
-  line-height:1.55 !important;
 }
