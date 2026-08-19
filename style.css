@@ -403,3 +403,33 @@
   font-size:14px !important;
   letter-spacing:0 !important;
 }
+
+/* v4.4.11：修正目前配裝欄位順序 */
+@media (min-width:821px){
+  #equippedSlots .slot-card .stone-field{
+    grid-column:2 !important;
+    grid-row:1 !important;
+  }
+  #equippedSlots .slot-card .potential-field{
+    grid-column:3 !important;
+    grid-row:1 !important;
+  }
+  #equippedSlots .slot-card .slot-value-field{
+    grid-column:4 !important;
+    grid-row:1 !important;
+  }
+  #equippedSlots .slot-card .slot-preview{
+    grid-column:5 !important;
+    grid-row:1 !important;
+  }
+}
+
+/* 右側基礎屬性＋潛能說明字體 */
+#equippedSlots .slot-preview.potential-desc,
+#equippedSlots .slot-preview.potential-desc .stone-base-desc,
+#equippedSlots .slot-preview.potential-desc .potential-function-desc,
+#equippedSlots .slot-preview.potential-desc span,
+#equippedSlots .slot-preview.potential-desc b{
+  font-size:16px !important;
+  line-height:1.55 !important;
+}

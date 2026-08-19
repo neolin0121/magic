@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.19-v4.4.10');
+console.log('豆腐魔石配裝器 build 2026.08.19-v4.4.11');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -189,7 +189,7 @@ if(p.kind==='sameShape'){
 }
 function renderBuild(){
  const metric=state.metric;$('#baseStatInput').value=state.baseValues[metric]||0;$('#baseStatHint').textContent='目前計算：'+METRICS[metric].label;$$('.seg').forEach(b=>b.classList.toggle('active',b.dataset.metric===metric));
- $('#equippedSlots').innerHTML=Array.from({length:5},(_,i)=>{const item=state.equipped[i]||{stoneId:'',quality:'mythic',potential:'none',value:0},stone=item.stoneId?getStone(item.stoneId,item.quality||'mythic'):null,p=POTENTIALS[item.potential]||POTENTIALS.none,r=stone?getRange(stone,item.potential):[0,0];return `<article class="slot-card ${stone?'active':''}"><div class="slot-index">${i+1}</div><div class="field"><label>魔石</label><select class="slot-stone" data-i="${i}">${stoneOptionsForSlot(i)}</select><div class="stone-desc">${stone?stone.name+'・'+stone.shape+'・'+stone.qualityName:'未裝備'}</div></div><div class="field"><label>潛能</label><select class="slot-pot" data-i="${i}" ${stone?'':'disabled'}>${potentialOptions()}</select><div class="range">${stone?`範圍 ${r[0]}${p.unit}～${r[1]}${p.unit}`:'—'}</div></div><div class="field slot-value-field"><label>數值</label><input class="slot-val" data-i="${i}" type="number" step="0.1" value="${item.value||0}" ${stone?'':'disabled'}><div class="range">輸入實際顯示數值</div></div><div class="slot-preview potential-desc" id="preview${i}">
+ $('#equippedSlots').innerHTML=Array.from({length:5},(_,i)=>{const item=state.equipped[i]||{stoneId:'',quality:'mythic',potential:'none',value:0},stone=item.stoneId?getStone(item.stoneId,item.quality||'mythic'):null,p=POTENTIALS[item.potential]||POTENTIALS.none,r=stone?getRange(stone,item.potential):[0,0];return `<article class="slot-card ${stone?'active':''}"><div class="slot-index">${i+1}</div><div class="field stone-field"><label>魔石</label><select class="slot-stone" data-i="${i}">${stoneOptionsForSlot(i)}</select><div class="stone-desc">${stone?stone.name+'・'+stone.shape+'・'+stone.qualityName:'未裝備'}</div></div><div class="field potential-field"><label>潛能</label><select class="slot-pot" data-i="${i}" ${stone?'':'disabled'}>${potentialOptions()}</select><div class="range">${stone?`範圍 ${r[0]}${p.unit}～${r[1]}${p.unit}`:'—'}</div></div><div class="field slot-value-field"><label>數值</label><input class="slot-val" data-i="${i}" type="number" step="0.1" value="${item.value||0}" ${stone?'':'disabled'}><div class="range">輸入實際顯示數值</div></div><div class="slot-preview potential-desc" id="preview${i}">
   <div class="stone-base-desc">
     <b>基礎屬性：</b>
     <span>${stone ? [
