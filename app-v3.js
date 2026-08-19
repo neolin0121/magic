@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.19-v4.4.8');
+console.log('豆腐魔石配裝器 build 2026.08.19-v4.4.9');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -377,7 +377,7 @@ function switchTab(n){
 }
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='neo-gem-data.json';a.click();URL.revokeObjectURL(a.href)}
 async function importData(file){const parsed=JSON.parse(await file.text());state={...clone(defaults),...parsed};migrateQualityData();ensureConfigSystem();persist();renderConfigTabs();renderBuild();renderInventory();renderDB()}
-$$('.tab').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$$('.seg').forEach(b=>b.onclick=()=>{state.metric=b.dataset.metric;persist();renderBuild()});$('#baseStatInput').oninput=e=>{state.baseValues[state.metric]=Number(e.target.value||0);persist();updateBuild()};$('#saveCurrentBtn').onclick=()=>{
+$$('.tab').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$$('.seg').forEach(b=>b.onclick=()=>{state.metric=b.dataset.metric;persist();renderBuild()});$('#baseStatInput').oninput=e=>{state.baseValues[state.metric]=e.target.value===''?'':Number(e.target.value);persist();updateBuild()};$('#saveCurrentBtn').onclick=()=>{
   saveCurrentConfigSnapshot();
   alert('目前配置已儲存。');
 };
@@ -393,7 +393,7 @@ $('#loadCurrentBtn').onclick=()=>{
   const active=state.activeConfig;
   const name=configs[active]?.name||`配置 ${active+1}`;
   state.metric='quick';
-  state.baseValues={quick:0,damage:0,strong:0};
+  state.baseValues={quick:'',damage:'',strong:''};
   state.equipped=Array.from({length:5},()=>({stoneId:'',quality:'mythic',potential:'none',value:0}));
   state.inventory=inventory;
   state.configs=configs;

@@ -395,3 +395,8 @@
   opacity:.9;
   font-size:12px;
 }
+
+#baseStatInput::placeholder{
+  font-size:11px !important;
+  letter-spacing:-0.2px;
+}
