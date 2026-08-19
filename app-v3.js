@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.19-v4.4.9');
+console.log('豆腐魔石配裝器 build 2026.08.19-v4.4.10');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -401,6 +401,7 @@ $('#loadCurrentBtn').onclick=()=>{
   state.configs[active]={name,metric:state.metric,baseValues:clone(state.baseValues),equipped:clone(state.equipped)};
   state.compare=null;
   persist();renderConfigTabs();renderBuild();renderInventory();
+setTimeout(()=>{const el=$('#baseStatInput');if(el)el.value='';},0);
 };$('#addInventoryBtn').onclick=()=>openDialog();$('#saveInventoryItemBtn').onclick=e=>{e.preventDefault();saveDialog();$('#inventoryDialog').close()};$('#runOptimizerBtn').onclick=runOptimizer;$('#applyOptimizerBtn').onclick=applyOptimizer;$('#exportBtn').onclick=exportData;$('#importInput').onchange=e=>{if(e.target.files[0])importData(e.target.files[0])};$('#clearStorageBtn').onclick=()=>{if(confirm('確定清除本機存檔？')){localStorage.removeItem(KEY);location.reload()}};$('#invStoneType').innerHTML=stoneOptions(false);$('#invPotential').innerHTML=potentialOptions();renderBuild();renderInventory();renderDB();
 
 function showHelpPage(name){$$(".help-tab").forEach(b=>b.classList.toggle("active",b.dataset.help===name));$$(".help-section").forEach(s=>s.classList.toggle("active",s.dataset.helpPage===name));const c=$(".help-content");if(c)c.scrollTop=0}

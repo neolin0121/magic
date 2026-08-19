@@ -396,7 +396,10 @@
   font-size:12px;
 }
 
+
+
+/* v4.4.10：神器提示字體與欄位重設 */
 #baseStatInput::placeholder{
-  font-size:11px !important;
-  letter-spacing:-0.2px;
+  font-size:14px !important;
+  letter-spacing:0 !important;
 }
