@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.20-v4.4.16.1');
+console.log('豆腐魔石配裝器 build 2026.08.20-v4.4.16.3');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},

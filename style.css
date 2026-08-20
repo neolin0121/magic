@@ -620,3 +620,194 @@ body.modal-open{overflow:hidden}
   .support-btn{width:100%}
   .support-dialog{padding:20px 14px}
 }
+
+/* v4.4.16.2：手機 TWQR 支付輔助 */
+.support-mobile-actions{
+  display:flex;
+  justify-content:center;
+  margin:14px 0 8px;
+}
+.support-save-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+  background:#187a2b !important;
+  border-color:#35c759 !important;
+  color:#fff !important;
+  font-weight:700 !important;
+}
+.support-mobile-tip{
+  margin:8px auto 0;
+  max-width:420px;
+  color:#b9c9d8;
+  font-size:14px !important;
+}
+@media(min-width:821px){
+  .support-mobile-actions,
+  .support-mobile-tip{
+    display:none !important;
+  }
+}
+
+/* v4.4.16.3：手機版配裝器排版修正；桌機版不受影響 */
+@media (max-width: 700px){
+  html,body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+  }
+  body{
+    margin:0;
+  }
+  .wrap,
+  .container,
+  main,
+  header,
+  section,
+  .panel{
+    max-width:100%;
+    box-sizing:border-box;
+  }
+
+  /* 頂部區域 */
+  .topbar{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:10px !important;
+  }
+  .top-actions{
+    width:100% !important;
+    max-width:100% !important;
+    justify-content:flex-start !important;
+  }
+  .top-actions .btn{
+    max-width:100%;
+  }
+  .support-action-row{
+    width:100% !important;
+    flex-basis:100% !important;
+  }
+
+  /* 主分頁允許正常換行，不再被右側截斷 */
+  .tabs{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    width:100% !important;
+    max-width:100% !important;
+    overflow:visible !important;
+    gap:6px !important;
+  }
+  .tabs > *{
+    flex:0 0 auto;
+  }
+
+  /* 上方數值卡改成單欄 */
+  .summary-grid,
+  .stats-grid,
+  .dashboard-grid,
+  .result-grid{
+    grid-template-columns:minmax(0,1fr) !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+
+  /* 配置切換區不得撐寬頁面 */
+  .config-bar,
+  .config-panel,
+  .config-actions{
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box;
+    flex-wrap:wrap !important;
+  }
+
+  /* 目前配裝：每顆改成直向單欄 */
+  #slots,
+  #equipSlots,
+  .slots,
+  .slot-list{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+  .slot,
+  .slot-row,
+  .equip-slot,
+  .equipment-slot{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+    display:grid !important;
+    grid-template-columns:44px minmax(0,1fr) !important;
+    gap:10px !important;
+    align-items:start !important;
+  }
+  .slot > :first-child,
+  .slot-row > :first-child,
+  .equip-slot > :first-child,
+  .equipment-slot > :first-child{
+    grid-column:1;
+  }
+  .slot .field,
+  .slot-row .field,
+  .equip-slot .field,
+  .equipment-slot .field,
+  .slot .slot-field,
+  .slot-row .slot-field,
+  .slot .stone-field,
+  .slot .potential-field,
+  .slot .value-field,
+  .slot .desc,
+  .slot .description,
+  .slot .info-box,
+  .slot-row .desc,
+  .slot-row .description,
+  .slot-row .info-box{
+    grid-column:2 !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+  }
+
+  /* 不論原本欄位用了什麼固定寬度，手機一律不得超出容器 */
+  .slot select,
+  .slot input,
+  .slot textarea,
+  .slot-row select,
+  .slot-row input,
+  .slot-row textarea,
+  .equip-slot select,
+  .equip-slot input{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+  }
+
+  /* 潛能說明區放到欄位下方 */
+  .slot .stone-info,
+  .slot .potential-info,
+  .slot .slot-info,
+  .slot-row .stone-info,
+  .slot-row .potential-info,
+  .slot-row .slot-info{
+    grid-column:2 !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+  }
+
+  /* 比較基準等後續區塊也限制在螢幕內 */
+  #comparePanel,
+  .compare-panel,
+  .comparison-panel{
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+}
