@@ -526,3 +526,97 @@
     margin-left:0;
   }
 }
+
+/* v4.4.16：請豆腐喝飲料 */
+.top-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  align-items:center;
+  gap:8px;
+}
+.support-action-row{
+  flex-basis:100%;
+  display:flex;
+  justify-content:flex-end;
+}
+.support-btn{
+  border-color:#e3a72f !important;
+  color:#ffd36a !important;
+  font-weight:700 !important;
+}
+.support-btn:hover{
+  background:rgba(227,167,47,.14) !important;
+}
+.support-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+.support-modal.open{display:flex}
+.support-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.72);
+}
+.support-dialog{
+  position:relative;
+  z-index:1;
+  width:min(520px,94vw);
+  max-height:92vh;
+  overflow:auto;
+  padding:24px;
+  border:1px solid #d99b21;
+  border-radius:12px;
+  background:#091522;
+  color:#eaf4ff;
+  text-align:center;
+  box-shadow:0 18px 60px rgba(0,0,0,.55);
+}
+.support-dialog h2{
+  margin:0 34px 10px;
+  color:#f6bd3b;
+}
+.support-dialog p{
+  font-size:16px;
+  line-height:1.65;
+}
+.support-close{
+  position:absolute;
+  top:10px;
+  right:12px;
+  border:0;
+  background:transparent;
+  color:#b9c9d8;
+  font-size:30px;
+  cursor:pointer;
+}
+.support-qr-wrap{
+  width:min(390px,100%);
+  margin:16px auto;
+  padding:8px;
+  border-radius:10px;
+  background:#fff;
+}
+.support-qr{
+  display:block;
+  width:100%;
+  height:auto;
+}
+.support-dialog a{
+  color:#58b7ff;
+}
+.support-thanks{
+  color:#ffd36a;
+  font-weight:700;
+}
+body.modal-open{overflow:hidden}
+@media(max-width:700px){
+  .support-action-row{justify-content:stretch}
+  .support-btn{width:100%}
+  .support-dialog{padding:20px 14px}
+}

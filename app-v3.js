@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.20-v4.4.15');
+console.log('豆腐魔石配裝器 build 2026.08.20-v4.4.16');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -947,3 +947,28 @@ function bindInventoryShapeFilters(){
 }
 
 bindInventoryShapeFilters();
+
+
+// v4.4.16 支持視窗
+(function(){
+  const btn=document.getElementById('supportBtn');
+  const modal=document.getElementById('supportModal');
+  const closeBtn=document.getElementById('supportCloseBtn');
+  if(!btn||!modal)return;
+  const openSupport=()=>{
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.classList.add('modal-open');
+  };
+  const closeSupport=()=>{
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+    document.body.classList.remove('modal-open');
+  };
+  btn.addEventListener('click',openSupport);
+  if(closeBtn)closeBtn.addEventListener('click',closeSupport);
+  modal.querySelectorAll('[data-close-support]').forEach(el=>el.addEventListener('click',closeSupport));
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&modal.classList.contains('open'))closeSupport();
+  });
+})();
