@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.19-v4.4.13');
+console.log('豆腐魔石配裝器 build 2026.08.20-v4.4.14');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -50,6 +50,7 @@ function seedInventory(){
 }
 function load(){try{const r=localStorage.getItem(KEY);if(!r){const s=clone(defaults);s.inventory=seedInventory();return s}return {...clone(defaults),...JSON.parse(r)}}catch{const s=clone(defaults);s.inventory=seedInventory();return s}}
 let state=load(),optimizerSelection=null,editingInventoryId=null;
+let inventoryPickSlot=null;
 
 function getCurrentConfigSnapshot(){
   return {
@@ -154,7 +155,7 @@ const stoneOptions=(empty=true)=>(empty?'<option value="">未裝備</option>':''
 function qualityOptions(selected='mythic'){return Object.values(QUALITIES).map(q=>`<option value="${q.id}" ${q.id===selected?'selected':''}>${q.icon} ${q.name}</option>`).join('')}
 function stoneOptionsForSlot(slotIndex){
   const used=new Set(state.equipped.map((x,i)=>i===slotIndex?'':x?.stoneId).filter(Boolean));
-  let out='<option value="">未裝備</option>';
+  let out='<option value="__FROM_INVENTORY__" class="inventory-picker-option">★ 從我的魔石挑選…</option><option value="">未裝備</option>';
   for(const s of DB){
     for(const qid of ['mythic','legendary']){
       const disabled=used.has(s.id),q=QUALITIES[qid];
@@ -204,6 +205,11 @@ function renderBuild(){
 function bindBuild(){
  $$('.slot-stone').forEach(e=>e.onchange=ev=>{
   const i=+ev.target.dataset.i,raw=ev.target.value;
+  if(raw==='__FROM_INVENTORY__'){
+    inventoryPickSlot=i;
+    switchTab('inventory');
+    return;
+  }
   if(!raw){
     state.equipped[i]={stoneId:'',quality:'mythic',potential:'none',value:0};
     persist();renderBuild();return;
@@ -228,22 +234,72 @@ function updateBuild(){
  persist();
 }
 function renderInventory(){
+ const picking=inventoryPickSlot!==null;
+ const pickSlot=picking?inventoryPickSlot:null;
  $('#inventoryList').innerHTML=state.inventory.length?state.inventory.map(x=>{
    const s=getStone(x.stoneId,x.quality||'mythic'),p=POTENTIALS[x.potential];
    const fixed=Object.entries(s.stats||{}).filter(([k,v])=>Number(v)!==0).map(([k,v])=>`${METRICS[k].label} +${v}`);
    const bonus=Object.entries(s.bonuses||{}).filter(([k,v])=>Number(v)!==0).map(([k,v])=>`${METRICS[k].label}加成 +${v}%`);
    const baseText=[...fixed,...bonus].join('、')||'—';
-   return `<article class="inv-card ${x.favorite?'favorite':''}">
+   const duplicate=picking && state.equipped.some((e,idx)=>idx!==pickSlot && e?.stoneId===x.stoneId);
+   const actions=picking
+     ? `<button class="btn pickInvStone ${duplicate?'disabled-pick':''}" data-id="${x.id}" ${duplicate?'disabled':''}>${duplicate?'同種魔石已裝備':`裝備到第 ${pickSlot+1} 格`}</button>`
+     : `<button class="btn editInv" data-id="${x.id}">編輯</button><button class="btn delInv" data-id="${x.id}">刪除</button>`;
+   return `<article class="inv-card ${x.favorite?'favorite':''} ${picking?'inventory-pick-card':''}">
      <div class="inv-title"><strong>${s.name}</strong>${x.favorite?'<span class="badge">裝備中</span>':''}</div>
      <div class="inv-meta">
        ${s.shape}・${s.color}<br>
        <span class="inventory-base-attr">基礎屬性：${baseText}</span><br>
        潛能：${p.name} ${x.value}${p.unit}
      </div>
-     <div class="inv-actions"><button class="btn editInv" data-id="${x.id}">編輯</button><button class="btn delInv" data-id="${x.id}">刪除</button></div>
+     <div class="inv-actions">${actions}</div>
    </article>`;
  }).join(''):'<div class="empty">目前沒有魔石。</div>';
- $$('.editInv').forEach(b=>b.onclick=()=>openDialog(b.dataset.id));$$('.delInv').forEach(b=>b.onclick=()=>{state.inventory=state.inventory.filter(x=>x.id!==b.dataset.id);persist();renderInventory()});
+
+ let pickerBar=$('#inventoryPickerBar');
+ if(picking){
+   if(!pickerBar){
+     pickerBar=document.createElement('div');
+     pickerBar.id='inventoryPickerBar';
+     pickerBar.className='inventory-picker-bar';
+     $('#inventoryList').before(pickerBar);
+   }
+   pickerBar.innerHTML=`<strong>正在挑選第 ${pickSlot+1} 格魔石</strong><span>選擇後會自動裝備並返回配裝器。</span><button id="cancelInventoryPick" class="btn">取消挑選</button>`;
+   $('#cancelInventoryPick').onclick=()=>{
+     inventoryPickSlot=null;
+     switchTab('build');
+     renderBuild();
+   };
+ }else if(pickerBar){
+   pickerBar.remove();
+ }
+
+ $$('.pickInvStone').forEach(b=>b.onclick=()=>{
+   if(inventoryPickSlot===null)return;
+   const x=state.inventory.find(y=>y.id===b.dataset.id);
+   if(!x)return;
+   const slot=inventoryPickSlot;
+   if(state.equipped.some((e,idx)=>idx!==slot && e?.stoneId===x.stoneId)){
+     alert('同種魔石不能重複裝備。');
+     return;
+   }
+   state.equipped[slot]={
+     stoneId:x.stoneId,
+     quality:x.quality||'mythic',
+     potential:x.potential||'none',
+     value:Number(x.value||0)
+   };
+   inventoryPickSlot=null;
+   persist();
+   switchTab('build');
+   renderBuild();
+ });
+ $$('.editInv').forEach(b=>b.onclick=()=>openDialog(b.dataset.id));
+ $$('.delInv').forEach(b=>b.onclick=()=>{
+   state.inventory=state.inventory.filter(x=>x.id!==b.dataset.id);
+   persist();
+   renderInventory();
+ });
 }
 function renderDB(){
  const cards=[];
@@ -368,6 +424,7 @@ function runOptimizer(){
 }
 function applyOptimizer(){if(!optimizerSelection)return;state.metric=optimizerSelection.metric;state.baseValues[state.metric]=optimizerSelection.base;state.equipped=optimizerSelection.build.slice();while(state.equipped.length<5)state.equipped.push({stoneId:'',quality:'mythic',potential:'none',value:0});persist();switchTab('build');renderBuild()}
 function switchTab(n){
+  if(inventoryPickSlot!==null && n!=='inventory') inventoryPickSlot=null;
   $$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===n));
   $$('.tab-page').forEach(p=>p.classList.remove('active'));
   $('#tab-'+n).classList.add('active');

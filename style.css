@@ -441,3 +441,34 @@
     width:100% !important;
   }
 }
+
+/* v4.4.14：從「我的魔石」挑選 */
+.slot-stone option.inventory-picker-option{
+  color:#f6bd3b !important;
+  font-weight:700 !important;
+}
+.inventory-picker-bar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  margin:0 0 14px;
+  padding:12px 14px;
+  border:1px solid var(--gold);
+  background:rgba(246,189,59,.08);
+  color:#dbe8f7;
+}
+.inventory-picker-bar strong{
+  color:var(--gold);
+  font-size:16px;
+}
+.pickInvStone{
+  background:#187a2b !important;
+  border-color:#35c759 !important;
+  color:#fff !important;
+  font-weight:700 !important;
+}
+.pickInvStone.disabled-pick{
+  opacity:.45 !important;
+  cursor:not-allowed !important;
+}
