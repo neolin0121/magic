@@ -472,3 +472,57 @@
   opacity:.45 !important;
   cursor:not-allowed !important;
 }
+
+/* v4.4.15：我的魔石分類篩選 */
+.inventory-shape-filters{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:0 0 14px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.02);
+  border-radius:8px;
+}
+.inventory-filter-label{
+  color:var(--muted);
+  font-weight:700;
+  margin-right:2px;
+}
+.shape-filter-btn{
+  min-width:68px;
+  padding:8px 12px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#0b1723;
+  color:var(--text);
+  font-weight:700;
+  cursor:pointer;
+}
+.shape-filter-btn.active{
+  background:var(--gold);
+  border-color:var(--gold);
+  color:#101820;
+}
+.shape-filter-btn:disabled{
+  opacity:.38;
+  cursor:not-allowed;
+}
+.inventory-filter-hint{
+  color:var(--muted);
+  font-size:13px;
+  margin-left:4px;
+}
+@media(max-width:650px){
+  .inventory-shape-filters{
+    align-items:stretch;
+  }
+  .shape-filter-btn{
+    flex:1 1 calc(50% - 8px);
+  }
+  .inventory-filter-hint{
+    width:100%;
+    margin-left:0;
+  }
+}

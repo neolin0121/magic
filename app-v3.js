@@ -1,4 +1,4 @@
-console.log('豆腐魔石配裝器 build 2026.08.20-v4.4.14');
+console.log('豆腐魔石配裝器 build 2026.08.20-v4.4.15');
 console.log('豆腐魔石配裝器 build 2026.08.13-v3');
 const DB=[
 {id:'quickCircle',name:'迅擊圓盾',shape:'圓盾',color:'紅色',type:'fixed',stats:{quick:100,damage:0,strong:0},bonuses:{quick:0,damage:0,strong:0}},
@@ -51,6 +51,7 @@ function seedInventory(){
 function load(){try{const r=localStorage.getItem(KEY);if(!r){const s=clone(defaults);s.inventory=seedInventory();return s}return {...clone(defaults),...JSON.parse(r)}}catch{const s=clone(defaults);s.inventory=seedInventory();return s}}
 let state=load(),optimizerSelection=null,editingInventoryId=null;
 let inventoryPickSlot=null;
+let inventoryShapeFilters=new Set();
 
 function getCurrentConfigSnapshot(){
   return {
@@ -236,7 +237,13 @@ function updateBuild(){
 function renderInventory(){
  const picking=inventoryPickSlot!==null;
  const pickSlot=picking?inventoryPickSlot:null;
- $('#inventoryList').innerHTML=state.inventory.length?state.inventory.map(x=>{
+ const visibleInventory=inventoryShapeFilters.size
+   ? state.inventory.filter(x=>{
+       const s=getStone(x.stoneId,x.quality||'mythic');
+       return s && inventoryShapeFilters.has(s.shape);
+     })
+   : state.inventory;
+ $('#inventoryList').innerHTML=visibleInventory.length?visibleInventory.map(x=>{
    const s=getStone(x.stoneId,x.quality||'mythic'),p=POTENTIALS[x.potential];
    const fixed=Object.entries(s.stats||{}).filter(([k,v])=>Number(v)!==0).map(([k,v])=>`${METRICS[k].label} +${v}`);
    const bonus=Object.entries(s.bonuses||{}).filter(([k,v])=>Number(v)!==0).map(([k,v])=>`${METRICS[k].label}加成 +${v}%`);
@@ -254,7 +261,7 @@ function renderInventory(){
      </div>
      <div class="inv-actions">${actions}</div>
    </article>`;
- }).join(''):'<div class="empty">目前沒有魔石。</div>';
+ }).join(''):(inventoryShapeFilters.size?'<div class="empty">目前選取的分類沒有已建立魔石。</div>':'<div class="empty">目前沒有魔石。</div>');
 
  let pickerBar=$('#inventoryPickerBar');
  if(picking){
@@ -300,6 +307,7 @@ function renderInventory(){
    persist();
    renderInventory();
  });
+ renderInventoryShapeFilters();
 }
 function renderDB(){
  const cards=[];
@@ -899,3 +907,43 @@ else if(id==='helpBtn')trackEvent('help_open');
 else if(id==='changelogBtn')trackEvent('changelog_open');
 else if(id==='saveCurrentBtn')trackEvent('save_current_config');
 else if(id==='loadCurrentBtn')trackEvent('load_current_config');});
+
+function renderInventoryShapeFilters(){
+  const wrap=$('#inventoryShapeFilters');
+  if(!wrap)return;
+  $$('.shape-filter-btn').forEach(btn=>{
+    const shape=btn.dataset.shape;
+    btn.classList.toggle('active',inventoryShapeFilters.has(shape));
+    btn.disabled=!inventoryShapeFilters.has(shape) && inventoryShapeFilters.size>=3;
+  });
+  const hint=$('#inventoryFilterHint');
+  if(hint){
+    hint.textContent=inventoryShapeFilters.size
+      ? `已選 ${inventoryShapeFilters.size} 種：${[...inventoryShapeFilters].join('、')}`
+      : '未選擇分類時顯示全部；最多可選 3 種';
+  }
+}
+
+function bindInventoryShapeFilters(){
+  const wrap=$('#inventoryShapeFilters');
+  if(!wrap)return;
+  $$('.shape-filter-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      const shape=btn.dataset.shape;
+      if(inventoryShapeFilters.has(shape)){
+        inventoryShapeFilters.delete(shape);
+      }else{
+        if(inventoryShapeFilters.size>=3){
+          alert('最多只能選擇 3 種分類。');
+          return;
+        }
+        inventoryShapeFilters.add(shape);
+      }
+      renderInventoryShapeFilters();
+      renderInventory();
+    };
+  });
+  renderInventoryShapeFilters();
+}
+
+bindInventoryShapeFilters();
